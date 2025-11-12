@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "425793871683",
+    "project_id": "streamwise-fcab0",
+    "storage_bucket": "streamwise-fcab0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:425793871683:android:89a9f5822d16592f4199f6",
+        "android_client_info": {
+          "package_name": "com.example.streamwise"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "425793871683-j5pdg22t1v6l9rbbvtd9fchsvc5076bi.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.streamwise",
+            "certificate_hash": "de766420d1cf3ea9ba9ec3819bab2b3557839840"
+          }
+        },
+        {
+          "client_id": "425793871683-8qro466g2ebmqh7uhg20lhp4j55g6at6.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAg5PCq0ktDH_Cu1zpvgZu10nfUkHfLJKc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "425793871683-8qro466g2ebmqh7uhg20lhp4j55g6at6.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
