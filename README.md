@@ -1,68 +1,68 @@
-# streamwise
-🎬 Streamwise AI: Subscription Optimizer and Content Advisor
+Streamwise - README
 
-Streamwise AI is a modern Android application built with Jetpack Compose that helps users manage their sprawling digital content consumption. It provides a centralized, real-time watchlist and leverages external APIs and AI-driven logic to help users consolidate subscriptions and save money.
+=====================
+PROJECT INFORMATION
+=====================
 
-✨ Core Features
+Streamwise is a modern Android application designed to help users discover and track movies and TV shows across various streaming services. This project is built entirely with Kotlin and leverages the latest Android development tools and practices.
 
-Streamwise is designed to be the single source of truth for your entertainment decisions:
+==============
+🚀 FEATURES
+==============
 
-Real-Time Watchlist: Add movies and shows to your personal watchlist, which is synced instantly across devices using Firebase Firestore.
+- Seamless Authentication: Secure sign-in with Google, powered by Firebase Authentication.
+- Movie & Show Discovery: (Planned) Browse, search, and discover content from a comprehensive media database.
+- Unified Watchlist: (Planned) Keep track of what to watch next in a single, unified list.
+- Modern & Responsive UI: A clean and intuitive user interface built with Jetpack Compose and Material 3.
 
-Secure Authentication: Seamless user onboarding using Google Sign-In and Firebase Authentication.
+================================
+🛠️ TECH STACK & ARCHITECTURE
+================================
 
-Live Content Search: Search for movies using a real external API (like The Movie Database - TMDb) to get accurate, up-to-date information.
+This project follows modern Android architecture and best practices, utilizing a stack of robust and scalable technologies.
 
-Subscription Optimization (Logic Pending): The foundational structure is in place to analyze your current watchlist against service availability and costs, providing smart recommendations on which streaming services you actually need to keep.
+- Core: 100% Kotlin
+- UI: Jetpack Compose with a Material 3 design system.
+- Architecture: MVVM (Model-View-ViewModel) to separate business logic from the UI.
+- Asynchronous Programming: Kotlin Coroutines for managing background threads.
+- Backend & Authentication: Firebase (Authentication, Firestore) for a secure and scalable backend.
+- Image Loading: Coil for efficient and fast image loading.
+- Dependency Management: Gradle Version Catalogs for clean and maintainable dependencies.
 
-AI Content Advisor: (Future Feature) Structure ready for integrating an LLM to ask highly specific recommendation questions (e.g., "Recommend a lighthearted sci-fi show similar to X").
+=============================
+⚙️ SETUP AND CONFIGURATION
+=============================
 
-🛠️ Technology Stack
+To build and run this project locally, you will need to configure your own Firebase project.
 
-This project is built following modern Android and Google best practices, utilizing the MVVM architectural pattern.
+Prerequisites:
+- Android Studio Iguana | 2023.2.1 or newer
+- JDK 11 or newer
 
-Primary Language: Kotlin
+Steps:
 
-UI Toolkit: Jetpack Compose (Modern, declarative UI)
+1. Clone the Repository:
+   git clone https://github.com/your-username/streamwise.git
 
-Architecture: MVVM (Model-View-ViewModel)
+2. Create a Firebase Project:
+   - Go to the Firebase Console (https://console.firebase.google.com/) and create a new project.
+   - Add a new Android app to your Firebase project with the package name `com.example.streamwise`.
+   - Follow the setup instructions to download the `google-services.json` file.
 
-Data & Backend:
+3. Add `google-services.json`:
+   - Place the downloaded `google-services.json` file into the `app/` directory of the project.
 
-Firebase Firestore: Real-time database for Watchlist data.
+4. Enable Authentication:
+   - In the Firebase Console, go to the Authentication section.
+   - Click "Get Started" and enable Google as a sign-in provider.
 
-Firebase Authentication: Handles Google Sign-In and user identity.
+5. Build and Run:
+   - Open the project in Android Studio.
+   - Let Gradle sync the dependencies.
+   - Run the app on an emulator or a physical device.
 
-Networking:
+==========
+LICENSE
+==========
 
-Retrofit: Type-safe HTTP client for API calls.
-
-Kotlinx Serialization: Efficient conversion of API JSON to Kotlin data classes.
-
-Concurrency: Kotlin Coroutines and Flow for reactive data streams.
-
-🚀 Getting Started
-
-To run this project locally, you will need to set up Firebase and provide an external API key.
-
-Clone the Repository:
-
-git clone [YOUR_REPO_URL]
-
-
-Firebase Setup:
-
-Create a new project in the Firebase Console.
-
-Enable the Firestore Database and Google Sign-In provider in Firebase Authentication.
-
-Download your google-services.json file and place it in the app/ directory.
-
-API Key Configuration:
-
-Obtain an API key from a movie database (e.g., TMDb).
-
-Replace the placeholder YOUR_TMDB_API_KEY in app/src/main/java/com/example/streamwise/data/StreamwiseRepository.kt with your actual key.
-
-Run the Application:
-Open the project in Android Studio and run on an emulator or physical device.
+This project is licensed under the MIT License.
