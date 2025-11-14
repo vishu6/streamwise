@@ -2,10 +2,10 @@ package com.example.streamwise.applicationviewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.streamwise.data.MovieResult
 import com.example.streamwise.data.StreamwiseRepository
 import com.example.streamwise.data.UserWatchItem
 import com.example.streamwise.data.WatchStatus
+import com.example.streamwise.data.WatchmodeTitle
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -20,13 +20,13 @@ data class StreamwiseUiState(
     val isWatchlistLoading: Boolean = true,
     val watchlistError: String? = null,
 
-    // Search results (Transient)
-    val searchResults: List<MovieResult> = emptyList(),
+    // Search results from Watchmode API
+    val searchResults: List<WatchmodeTitle> = emptyList(),
     val searchTerm: String = "",
     val isSearching: Boolean = false,
     val searchError: String? = null,
 
-    // Subscriptions data from Firestore (Placeholder, will be integrated later)
+    // Subscriptions data from Firestore
     val currentSubscriptions: Set<String> = emptySet()
 )
 
@@ -35,12 +35,10 @@ class StreamwiseViewModel(
 ) : ViewModel() {
 
     // --- State Management ---
-    // MutableStateFlow holds the current state, and StateFlow exposes it to the UI safely.
     private val _uiState = MutableStateFlow(StreamwiseUiState())
     val uiState: StateFlow<StreamwiseUiState> = _uiState.asStateFlow()
 
     init {
-        // Start listening to the Firestore Watchlist immediately upon initialization
         getWatchListUpdates()
     }
 
@@ -48,7 +46,6 @@ class StreamwiseViewModel(
 
     private fun getWatchListUpdates() {
         viewModelScope.launch {
-            // Collects items emitted by the repository's real-time listener
             repository.getWatchList().collect { watchlist ->
                 _uiState.value = _uiState.value.copy(
                     watchlist = watchlist,
@@ -59,17 +56,15 @@ class StreamwiseViewModel(
         }
     }
 
-    fun addWatchItem(movie: MovieResult) {
+    fun addWatchItem(title: WatchmodeTitle) {
         viewModelScope.launch {
             val newItem = UserWatchItem(
-                movieId = movie.id,
-                title = movie.title,
+                movieId = title.id.toString(), // Use the API's ID
+                title = title.name, // Use the API's name
                 status = WatchStatus.TO_WATCH
             )
             try {
-                // The repository adds to Firestore, and the Flow listener automatically updates the UI state
                 repository.addWatchItem(newItem)
-                // Clear search results after adding an item to encourage a new search
                 _uiState.value = _uiState.value.copy(searchResults = emptyList(), searchTerm = "")
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(watchlistError = "Failed to add item: ${e.message}")
@@ -97,7 +92,7 @@ class StreamwiseViewModel(
         }
     }
 
-    // --- API Search Operations (External Data) ---
+    // --- API Search Operations ---
 
     fun updateSearchTerm(newTerm: String) {
         _uiState.value = _uiState.value.copy(searchTerm = newTerm)

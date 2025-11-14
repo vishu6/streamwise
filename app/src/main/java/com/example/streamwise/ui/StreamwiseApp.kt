@@ -29,10 +29,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import com.example.streamwise.data.CONTENT_DATA
-import com.example.streamwise.data.ContentItem
 import com.example.streamwise.data.StreamwiseRepository
 import com.example.streamwise.data.UsageEvent
+import com.example.streamwise.data.WatchmodeTitle
 import com.example.streamwise.data.toggle
 import com.example.streamwise.ui.components.ProfileScreen
 import com.example.streamwise.ui.components.RecommendationsTab
@@ -40,6 +39,8 @@ import com.example.streamwise.ui.components.SearchTab
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -58,7 +59,7 @@ fun StreamwiseApp(onSignOut: () -> Unit) {
     val tabs = listOf("Search", "Recs", "Profile")
 
     var searchTerm by remember { mutableStateOf("") }
-    val searchResults = remember { mutableStateListOf<ContentItem>() }
+    val movieSearchResults = remember { mutableStateListOf<WatchmodeTitle>() }
     var recommendationsQuery by remember { mutableStateOf("") }
     var recommendationsResult by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(false) }
@@ -69,17 +70,31 @@ fun StreamwiseApp(onSignOut: () -> Unit) {
 
     val coroutineScope = rememberCoroutineScope()
 
-    // Reverted to original search logic
+    // Debounced search effect with robust loading state management
     LaunchedEffect(searchTerm) {
-        if (searchTerm.isBlank()) {
-            searchResults.clear()
-            searchResults.addAll(CONTENT_DATA)
-        } else {
-            searchResults.clear()
-            searchResults.addAll(CONTENT_DATA.filter {
-                it.title.contains(searchTerm, ignoreCase = true) ||
-                        it.genre.contains(searchTerm, ignoreCase = true)
-            })
+        if (searchTerm.length < 3) {
+            movieSearchResults.clear()
+            isLoading = false
+            error = null
+            return@LaunchedEffect
+        }
+
+        isLoading = true
+        error = null
+        delay(500) // Debounce delay
+
+        try {
+            val results = repository.searchMovies(searchTerm)
+            movieSearchResults.clear()
+            movieSearchResults.addAll(results)
+        } catch (e: CancellationException) {
+            // This is expected, re-throw it to let the coroutine cancel itself.
+            throw e
+        } catch (e: Exception) {
+            error = "API search failed: ${e.message}"
+        } finally {
+            // This will always execute, even on cancellation, ensuring the spinner is hidden.
+            isLoading = false
         }
     }
 
@@ -117,7 +132,7 @@ fun StreamwiseApp(onSignOut: () -> Unit) {
                 0 -> SearchTab(
                     searchTerm = searchTerm,
                     onSearchTermChange = { searchTerm = it },
-                    searchResults = searchResults,
+                    searchResults = movieSearchResults,
                     isLoading = isLoading,
                     repository = repository,
                     coroutineScope = coroutineScope

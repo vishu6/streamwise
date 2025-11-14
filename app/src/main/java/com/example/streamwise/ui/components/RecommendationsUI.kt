@@ -35,11 +35,11 @@ fun RecommendationsTab(
 ) {
     Column(modifier = Modifier.padding(16.dp)) {
         Text(
-            text = "LLM Content Advisor",
+            text = "StreamWise",
             style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold)
         )
         Text(
-            text = "Ask for a highly specific recommendation based on your criteria.",
+            text = "Just type whats on you mind and get the movie recommendations..",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -48,7 +48,7 @@ fun RecommendationsTab(
         OutlinedTextField(
             value = query,
             onValueChange = onQueryChange,
-            placeholder = { Text("E.g., I loved The Expanse, but now I want something with more humor.") },
+            placeholder = { Text("E.g., I loved The Avengers, but now I want something with more humor.") },
             modifier = Modifier.fillMaxWidth().height(100.dp),
             shape = RoundedCornerShape(12.dp)
         )

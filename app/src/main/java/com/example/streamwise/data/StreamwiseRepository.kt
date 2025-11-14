@@ -6,7 +6,10 @@ import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.toObject
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
@@ -21,23 +24,11 @@ class StreamwiseRepository(
     private val userId: String
 ) {
 
-    private fun getWatchlistCollectionRef() = firestore
-        .collection("artifacts").document(appId)
-        .collection("users").document(userId)
-        .collection("watchlist")
-
-    private fun getUserSettingsDocRef() = firestore
-        .collection("artifacts").document(appId)
-        .collection("users").document(userId)
-        .collection("settings").document("subscriptions")
-
-    private fun getUsageEventsCollectionRef() = firestore
-        .collection("artifacts").document(appId)
-        .collection("users").document(userId)
-        .collection("usageEvents")
+    private fun getWatchlistCollectionRef() = firestore.collection("artifacts").document(appId).collection("users").document(userId).collection("watchlist")
+    private fun getUserSettingsDocRef() = firestore.collection("artifacts").document(appId).collection("users").document(userId).collection("settings").document("subscriptions")
+    private fun getUsageEventsCollectionRef() = firestore.collection("artifacts").document(appId).collection("users").document(userId).collection("usageEvents")
 
     // --- Watchlist Operations ---
-
     fun getWatchList(): Flow<List<UserWatchItem>> = callbackFlow {
         val collectionRef = getWatchlistCollectionRef()
         val subscription = collectionRef
@@ -48,9 +39,7 @@ class StreamwiseRepository(
                     close(error)
                     return@addSnapshotListener
                 }
-                val watchlist = snapshot?.documents?.mapNotNull {
-                    it.toObject<UserWatchItem>()?.copy(firestoreId = it.id)
-                } ?: emptyList()
+                val watchlist = snapshot?.documents?.mapNotNull { it.toObject<UserWatchItem>()?.copy(firestoreId = it.id) } ?: emptyList()
                 trySend(watchlist)
             }
         awaitClose { subscription.remove() }
@@ -69,7 +58,6 @@ class StreamwiseRepository(
     }
 
     // --- User Subscription Operations ---
-
     fun getUserSubscriptions(): Flow<Set<String>> = callbackFlow {
         val docRef = getUserSettingsDocRef()
         val subscription = docRef.addSnapshotListener { snapshot, error ->
@@ -88,12 +76,8 @@ class StreamwiseRepository(
     }
 
     // --- Usage Tracking Operations ---
-
     suspend fun logUsageEvent(serviceId: String) {
-        val event = mapOf(
-            "serviceId" to serviceId,
-            "timestamp" to FieldValue.serverTimestamp()
-        )
+        val event = mapOf("serviceId" to serviceId, "timestamp" to FieldValue.serverTimestamp())
         getUsageEventsCollectionRef().add(event).await()
     }
 
@@ -111,16 +95,37 @@ class StreamwiseRepository(
         awaitClose { subscription.remove() }
     }
 
-    // --- External Movie API Operations (Reverted to Placeholder) ---
+    // --- External Movie API Operations ---
+    suspend fun searchMovies(query: String): List<WatchmodeTitle> = coroutineScope {
+        try {
+            val searchResponse = WatchmodeApi.service.search(searchValue = query)
+            val titles = searchResponse.titleResults
 
-    suspend fun searchMovies(query: String): List<MovieResult> {
-        kotlinx.coroutines.delay(500)
-        return when {
-            query.contains("star", ignoreCase = true) -> listOf(
-                MovieResult(id1 = 101, id = "sw-anh", title = "Star Wars: A New Hope", overview = "The original saga begins...", releaseDate = "1977"),
-                MovieResult(id1 = 102, id = "st-2009", title = "Star Trek (2009)", overview = "The crew of the Enterprise is formed.", releaseDate = "2009"),
-            )
-            else -> emptyList()
+            val enrichedTitles = titles.map { title ->
+                async {
+                    try {
+                        val sources = WatchmodeApi.service.getTitleSources(title.id)
+                        // Normalize the data before returning it
+                        val normalizedSources = sources.map { source ->
+                            if (source.name == "Hotstar") {
+                                source.copy(name = "Disney+")
+                            } else {
+                                source
+                            }
+                        }
+                        title.copy(sources = normalizedSources)
+                    } catch (e: Exception) {
+                        Log.e("StreamwiseRepo", "Failed to fetch sources for title ${title.id}: ${e.message}")
+                        title
+                    }
+                }
+            }.awaitAll()
+
+            return@coroutineScope enrichedTitles
+
+        } catch (e: Exception) {
+            Log.e("StreamwiseRepo", "Watchmode API search failed: ${e.message}", e)
+            return@coroutineScope emptyList()
         }
     }
 }
